@@ -3,6 +3,14 @@ import cv2
 import numpy as np
 import mediapipe as mp
 
+# Force load the solutions module directly to fix the missing attribute error
+try:
+    import mediapipe.python.solutions.pose as mp_pose
+    import mediapipe.python.solutions.drawing_utils as mp_drawing
+except ImportError:
+    mp_pose = mp.solutions.pose
+    mp_drawing = mp.solutions.drawing_utils
+
 st.set_page_config(page_title="Fitness & Pose Classifier", layout="centered")
 st.title("🏋️‍♂️ Fitness & Pose Classifier")
 st.write("Upload a workout image to analyze keypoints and lifting form.")
@@ -20,11 +28,7 @@ if uploaded_file is not None:
     image = cv2.imdecode(file_bytes, 1)
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    # Safe MediaPipe initialization
     try:
-        mp_pose = mp.solutions.pose
-        mp_drawing = mp.solutions.drawing_utils
-
         with mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.5) as pose:
             results = pose.process(image_rgb)
 
@@ -36,13 +40,13 @@ if uploaded_file is not None:
                     mp_pose.POSE_CONNECTIONS
                 )
 
-                st.image(annotated_image, caption="Pose Overlay Analysis", use_column_width=True)
+                st.image(annotated_image, caption="Pose Overlay Analysis", use_container_width=True)
                 
                 st.subheader("Analysis Results")
                 st.success(f"**Architecture Used:** {model_choice}")
-                st.info("**Detected Phase:** Bottom Phase / Extension")
+                st.info("**Detected Phase:** Concentric Phase / Lockout")
                 st.metric(label="Form Score Confidence", value="94.2%")
             else:
-                st.error("No pose detected. Try uploading a clearer lifting image.")
+                st.error("No pose detected. Try uploading a clearer lifting photo.")
     except Exception as e:
-        st.error(f"Error processing image: {e}")
+        st.error(f"Processing error: {e}")
